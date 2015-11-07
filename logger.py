@@ -4,7 +4,6 @@ import os
 import pprint
 import threading
 from dateutil.parser import parse
-
 import pika
 import pymongo
 from flask import Flask
@@ -29,7 +28,8 @@ def avg(data_type, minutes):
                         "min": {"$min": "$payload_int"},
                         "max": {"$max": "$payload_int"},
                         "first_timestamp": {"$min": "$timestamp"},
-                        "last_timestamp": {"$max": "$timestamp"}
+                        "last_timestamp": {"$max": "$timestamp"},
+                        "count": {"$sum": 1}
                         }}
         ]
     ))
@@ -46,18 +46,17 @@ def avg_eui(eui, data_type, minutes):
                         "min": {"$min": "$payload_int"},
                         "max": {"$max": "$payload_int"},
                         "first_timestamp": {"$min": "$timestamp"},
-                        "last_timestamp": {"$max": "$timestamp"}
+                        "last_timestamp": {"$max": "$timestamp"},
+                        "count": {"$sum": 1}
                         }}
         ]
     ))
 
 
-@app.route("/sample")
-def sample():
-    cursor = db.full_data.find().sort([("Time", pymongo.DESCENDING)])
-    element = cursor[0]
-    pprint.pprint(element)
-    return "%s - %s" % (element['payload_hex'], element['Time'])
+@app.route("/eui/<eui>/type/<data_type>/last/<int:limit>")
+def full_data(eui, data_type, limit):
+    cursor = db[data_type].find({'eui': eui}).sort([("timestamp", pymongo.DESCENDING)]).limit(limit)
+    return dumps(cursor)
 
 
 def get_pika_params():
