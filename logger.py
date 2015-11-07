@@ -1,13 +1,15 @@
+import datetime
 import json
 import os
 import pprint
 import threading
-
 from dateutil.parser import parse
+
 import pika
 import pymongo
 from flask import Flask
 from pymongo import MongoClient
+from bson.json_util import dumps
 
 app = Flask(__name__)
 
@@ -17,9 +19,24 @@ def hello():
     return "pong"
 
 
-@app.route("/avg")
-def avg():
-    return "nope"
+@app.route("/type/<data_type>/avg/min/<int:mins>")
+def avg(data_type, mins):
+    return dumps(db[data_type].aggregate(
+        [
+            {"$match": {'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=mins)}}},
+            {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
+        ]
+    ))
+
+
+@app.route("/eui/<eui>/type/<data_type>/avg/min/<int:mins>")
+def avg_eui(eui, data_type, mins):
+    return dumps(db[data_type].aggregate(
+        [
+            {"$match": {'eui': eui, 'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=mins)}}},
+            {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
+        ]
+    ))
 
 
 @app.route("/sample")
@@ -77,11 +94,11 @@ def receive_new_message_data(ch, method, properties, body):
     print("CHANNEL: %s" % (pprint.pformat(ch)))
     data['timestamp'] = parse(data['timestamp'])
     print("EUI: %s %s - %s: %s / %s " % (data['eui'],
-                                             data['timestamp'],
-                                             data['data_type'],
-                                             data['payload_hex'],
-                                             data['payload_int']
-                                             ))
+                                         data['timestamp'],
+                                         data['data_type'],
+                                         data['payload_hex'],
+                                         data['payload_int']
+                                         ))
     result = db[data['data_type']].insert_one(data)
     print("Inserted into MongoDB: ")
     pprint.pprint(result.inserted_id)
