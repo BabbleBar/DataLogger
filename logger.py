@@ -16,6 +16,11 @@ def hello():
     return "pong"
 
 
+@app.route("/avg")
+def avg():
+    return "nope"
+
+
 @app.route("/sample")
 def sample():
     cursor = db.full_data.find().sort([("Time", pymongo.DESCENDING)])
@@ -65,6 +70,22 @@ def receive_new_message(ch, method, properties, body):
     pprint.pprint(result.inserted_id)
 
 
+def receive_new_message_data(ch, method, properties, body):
+    data = json.loads(body)
+    print("##########")
+    print("CHANNEL: %s" % (pprint.pformat(ch)))
+    print("EUI: %s %s - %s: %s / %s / %s" % (data['eui'],
+                                             data['time'],
+                                             data['value_type'],
+                                             data['payload_hex'],
+                                             data['payload_int'],
+                                             data['payload_float']
+                                             ))
+    result = db[data['value_type']].insert_one(data)
+    print("Inserted into MongoDB: ")
+    pprint.pprint(result.inserted_id)
+
+
 def start_listener():
     channel = connection.channel()
     channel.exchange_declare(exchange='data_log', type='fanout')
@@ -83,6 +104,24 @@ def start_listener():
     channel.start_consuming()
 
 
+def start_listener_data():
+    channel = connection.channel()
+    channel.exchange_declare(exchange='data', type='fanout')
+    result = channel.queue_declare(exclusive=True)
+    queue_name = result.method.queue
+
+    channel.queue_bind(exchange='data',
+                       queue=queue_name)
+
+    print('listener started')
+
+    channel.basic_consume(receive_new_message_data,
+                          queue=queue_name,
+                          no_ack=True)
+
+    channel.start_consuming()
+
+
 if __name__ == "__main__":
     port = os.getenv('VCAP_APP_PORT', '5000')
 
@@ -93,4 +132,7 @@ if __name__ == "__main__":
     thread = threading.Thread(target=start_listener)
     thread.setDaemon(True)
     thread.start()
+    thread2 = threading.Thread(target=start_listener_data)
+    thread2.setDaemon(True)
+    thread2.start()
     app.run(host='0.0.0.0', port=int(port))
