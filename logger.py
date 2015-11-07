@@ -68,7 +68,6 @@ def receive_new_message(ch, method, properties, body):
 
 
 def start_listener():
-
     channel = connection.channel()
     channel.exchange_declare(exchange='data_log', type='fanout')
     result = channel.queue_declare(exclusive=True)
@@ -86,15 +85,14 @@ def start_listener():
     channel.start_consuming()
 
 
-port = os.getenv('VCAP_APP_PORT', '5000')
-
-mongo_client = MongoClient(get_mongo_uri())
-db = mongo_client[get_mongo_db()]
-
-connection = pika.BlockingConnection(get_pika_params())
-thread = threading.Thread(target=start_listener)
-thread.setDaemon(True)
-thread.start()
-
 if __name__ == "__main__":
+    port = os.getenv('VCAP_APP_PORT', '5000')
+
+    mongo_client = MongoClient(get_mongo_uri())
+    db = mongo_client[get_mongo_db()]
+
+    connection = pika.BlockingConnection(get_pika_params())
+    thread = threading.Thread(target=start_listener)
+    thread.setDaemon(True)
+    thread.start()
     app.run(host='0.0.0.0', port=int(port), debug=True)
