@@ -3,6 +3,7 @@ import os
 import pprint
 import threading
 
+from dateutil.parser import parse
 import pika
 import pymongo
 from flask import Flask
@@ -74,14 +75,14 @@ def receive_new_message_data(ch, method, properties, body):
     data = json.loads(body)
     print("##########")
     print("CHANNEL: %s" % (pprint.pformat(ch)))
-    print("EUI: %s %s - %s: %s / %s / %s" % (data['eui'],
-                                             data['time'],
-                                             data['value_type'],
+    data['timestamp'] = parse(data['timestamp'])
+    print("EUI: %s %s - %s: %s / %s " % (data['eui'],
+                                             data['timestamp'],
+                                             data['data_type'],
                                              data['payload_hex'],
-                                             data['payload_int'],
-                                             data['payload_float']
+                                             data['payload_int']
                                              ))
-    result = db[data['value_type']].insert_one(data)
+    result = db[data['data_type']].insert_one(data)
     print("Inserted into MongoDB: ")
     pprint.pprint(result.inserted_id)
 
