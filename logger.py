@@ -7,8 +7,6 @@ import threading
 app = Flask(__name__)
 
 
-last_log = 'no data'
-
 @app.route("/ping")
 def hello():
     return "pong"
@@ -16,9 +14,9 @@ def hello():
 
 def get_pika_params():
     if 'VCAP_SERVICES' in os.environ:
-        VCAP_SERVICES = json.loads(os.environ['VCAP_SERVICES'])
+        vcap_service = json.loads(os.environ['VCAP_SERVICES'])
 
-        return pika.URLParameters(url=VCAP_SERVICES['rabbitmq'][0]['credentials']['uri'])
+        return pika.URLParameters(url=vcap_service['rabbitmq'][0]['credentials']['uri'])
 
     return pika.ConnectionParameters(host="localhost")
 
@@ -42,13 +40,7 @@ def start_listener():
     channel.start_consuming()
 
 
-@app.route("/last")
-def last():
-    return last_log
-
-
 port = os.getenv('VCAP_APP_PORT', '5000')
-
 
 connection = pika.BlockingConnection(get_pika_params())
 channel = connection.channel()
