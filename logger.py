@@ -52,19 +52,15 @@ def get_mongo_db():
 
 def receive_new_message(ch, method, properties, body):
     data = json.loads(body)
-    print("### CHANNEL")
-    pprint.pprint(ch)
-    print("### method")
-    pprint.pprint(method)
-    print("### properties")
-    pprint.pprint(properties)
+    print("##########")
+    print("CHANNEL: %s" % (pprint.pformat(ch)))
     print("EUI: %s %s - %s: %s" % (data['DevEUI'],
                                    data['Time'],
                                    data['FPort'],
                                    data['payload_hex']
                                    ))
     result = db.full_data.insert_one(data)
-    print(result.inserted_id)
+    print("Inserted into Mongo: " % (result.inserted_id))
 
 
 def start_listener():
