@@ -93,4 +93,4 @@ if __name__ == "__main__":
     thread = threading.Thread(target=start_listener)
     thread.setDaemon(True)
     thread.start()
-    app.run(host='0.0.0.0', port=int(port), debug=True)
+    app.run(host='0.0.0.0', port=int(port))
