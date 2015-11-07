@@ -36,7 +36,7 @@ def avg_eui(eui, data_type, minutes):
             {"$match": {'eui': eui, 'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=minutes)}}},
             {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
         ]
-    )[0])
+    ))
 
 
 @app.route("/sample")
