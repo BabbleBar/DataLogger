@@ -24,7 +24,13 @@ def avg(data_type, minutes):
     return dumps(db[data_type].aggregate(
         [
             {"$match": {'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=minutes)}}},
-            {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
+            {"$group": {"_id": "$eui",
+                        "avg": {"$avg": "$payload_int"},
+                        "min": {"$min": "$payload_int"},
+                        "max": {"$max": "$payload_int"},
+                        "first_timestamp": {"$min": "$timestamp"},
+                        "last_timestamp": {"$max": "$timestamp"}
+                        }}
         ]
     ))
 
@@ -33,8 +39,15 @@ def avg(data_type, minutes):
 def avg_eui(eui, data_type, minutes):
     return dumps(db[data_type].aggregate(
         [
-            {"$match": {'eui': eui, 'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=minutes)}}},
-            {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
+            {"$match": {'eui': eui,
+                        'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=minutes)}}},
+            {"$group": {"_id": "$eui",
+                        "avg": {"$avg": "$payload_int"},
+                        "min": {"$min": "$payload_int"},
+                        "max": {"$max": "$payload_int"},
+                        "first_timestamp": {"$min": "$timestamp"},
+                        "last_timestamp": {"$max": "$timestamp"}
+                        }}
         ]
     ))
 
