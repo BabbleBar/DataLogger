@@ -1,11 +1,12 @@
-from flask import Flask
-import os
-import pika
 import json
-import threading
+import os
 import pprint
-from pymongo import MongoClient
+import threading
+
+import pika
 import pymongo
+from flask import Flask
+from pymongo import MongoClient
 
 app = Flask(__name__)
 
