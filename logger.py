@@ -19,24 +19,24 @@ def hello():
     return "pong"
 
 
-@app.route("/type/<data_type>/avg/min/<int:mins>")
-def avg(data_type, mins):
+@app.route("/type/<data_type>/avg/minutes/<int:minutes>")
+def avg(data_type, minutes):
     return dumps(db[data_type].aggregate(
         [
-            {"$match": {'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=mins)}}},
+            {"$match": {'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=minutes)}}},
             {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
         ]
     ))
 
 
-@app.route("/eui/<eui>/type/<data_type>/avg/min/<int:mins>")
-def avg_eui(eui, data_type, mins):
+@app.route("/eui/<eui>/type/<data_type>/avg/minutes/<int:minutes>")
+def avg_eui(eui, data_type, minutes):
     return dumps(db[data_type].aggregate(
         [
-            {"$match": {'eui': eui, 'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=mins)}}},
+            {"$match": {'eui': eui, 'timestamp': {"$gt": datetime.datetime.now() - datetime.timedelta(minutes=minutes)}}},
             {"$group": {"_id": "$eui", "avg": {"$avg": "$payload_int"}}}
         ]
-    ))
+    )[0])
 
 
 @app.route("/sample")
