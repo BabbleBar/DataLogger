@@ -21,6 +21,17 @@ def get_pika_params():
     return pika.ConnectionParameters(host="localhost")
 
 
+def receive_new_message(ch, method, properties, body):
+    data = json.loads(body)
+    print("### %r" % ())
+    print("EUI: %s %s - %s: %s %r" % (data['DevEUI_uplink']['DevEUI'],
+                                      data['DevEUI_uplink']['Time'],
+                                      data['DevEUI_uplink']['FPort'],
+                                      data['DevEUI_uplink']['payload_hex'],
+                                      ""
+                                      ))
+
+
 def start_listener():
     result = channel.queue_declare(exclusive=True)
     queue_name = result.method.queue
@@ -28,12 +39,9 @@ def start_listener():
     channel.queue_bind(exchange='data_log',
                        queue=queue_name)
 
-    print(' [*] Waiting for logs. ')
+    print('listener started')
 
-    def callback(ch, method, properties, body):
-        print(" [x] %r" % (body,))
-
-    channel.basic_consume(callback,
+    channel.basic_consume(receive_new_message,
                           queue=queue_name,
                           no_ack=True)
 
