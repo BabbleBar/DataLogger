@@ -60,7 +60,8 @@ def receive_new_message(ch, method, properties, body):
                                    data['payload_hex']
                                    ))
     result = db.full_data.insert_one(data)
-    print("Inserted into MongoDB: " % result.inserted_id)
+    print("Inserted into MongoDB: ")
+    pprint.pprint(result.inserted_id)
 
 
 def start_listener():
