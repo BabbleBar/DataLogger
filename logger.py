@@ -9,9 +9,9 @@ app = Flask(__name__)
 
 last_log = 'no data'
 
-@app.route("/")
+@app.route("/ping")
 def hello():
-    return "Hello World!"
+    return "pong"
 
 
 def get_pika_params():
@@ -34,7 +34,6 @@ def start_listener():
 
     def callback(ch, method, properties, body):
         print(" [x] %r" % (body,))
-        last_log = body
 
     channel.basic_consume(callback,
                           queue=queue_name,
